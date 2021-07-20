@@ -13,9 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2.3.4
+    - name: Use Node.js LTS
+      uses: actions/setup-node@v2.3.0
+      with:
+        node-version: 14.x
+        cache: yarn
     - name: Run dependabolt
-      if: github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'dependabot/')
-      uses: docker://ghcr.io/malept/dependabolt-action:2.1.3
+      if: github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'dependabot/npm_and_yarn')
+      uses: malept/github-action-dependabolt@v4.0.1
       env:
         DEPENDABOLT_SSH_DEPLOY_KEY: ${{ secrets.DEPENDABOLT_SSH_DEPLOY_KEY }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -30,19 +35,10 @@ jobs:
         run: git config --global core.autocrlf input
       - uses: actions/checkout@v2.3.4
       - name: Use Node.js 12.x
-        uses: actions/setup-node@v2.1.5
+        uses: actions/setup-node@v2.3.0
         with:
           node-version: 12.x
-      - name: Determine Yarn cache
-        id: yarn-cache
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - name: Cache Yarn
-        uses: actions/cache@v2.1.5
-        with:
-          path: ${{ steps.yarn-cache.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+          cache: yarn
       - name: Install bolt
         shell: bash
         run: |
@@ -60,7 +56,7 @@ jobs:
       - name: Run tests
         run: bolt coverage:fast
       - name: Upload code coverage to Codecov
-        uses: codecov/codecov-action@v1.5.0
+        uses: codecov/codecov-action@v2.0.1
         with:
           file: ./coverage.lcov
           env_vars: CI_OS,TEST_TYPE
@@ -80,9 +76,10 @@ jobs:
       - uses: actions/checkout@v2.3.4
       - name: Windows specific setup
         if: matrix.os == 'windows-latest'
+        shell: bash
         run: |
-          C:\ProgramData\chocolatey\lib\wixtoolset\tools\wix311.exe /install /quiet /norestart
-          npm config set node-gyp "$($env:GITHUB_WORKSPACE)\node_modules\node-gyp\bin\node-gyp.js"
+          echo 'C:\Program Files (x86)\WiX Toolset v3.11\bin' >> $GITHUB_PATH
+          npm config set node-gyp "$GITHUB_WORKSPACE\node_modules\node-gyp\bin\node-gyp.js"
       - name: Linux specific setup
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -94,19 +91,10 @@ jobs:
           sudo apt-get install -y --no-install-recommends snapcraft flatpak-builder elfutils
           ci/install_runtimes.sh
       - name: Use Node.js 12.x
-        uses: actions/setup-node@v2.1.5
+        uses: actions/setup-node@v2.3.0
         with:
           node-version: 12.x
-      - name: Determine Yarn cache
-        id: yarn-cache
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - name: Cache Yarn
-        uses: actions/cache@v2.1.5
-        with:
-          path: ${{ steps.yarn-cache.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+          cache: yarn
       - name: Install bolt
         shell: bash
         run: |
@@ -117,30 +105,26 @@ jobs:
           npm install -g bolt@$BOLT_VERSION
       - name: Install
         run: bolt
-      - name: Test on Windows
-        if: matrix.os == 'windows-latest'
-        run: |
-          $wixToolsetBinPath = ";C:\Program Files (x86)\WiX Toolset v3.11\bin;"
-          $env:PATH = $env:PATH + $wixToolsetBinPath
-          [Environment]::SetEnvironmentVariable("Path", $env:PATH, [EnvironmentVariableTarget]::Machine)
-          if ((Get-Command "light.exe" -ErrorAction SilentlyContinue) -eq $null)
-          {
-            Write-Host "Unable to find light.exe in your PATH"
-          }
-          bolt coverage:slow
-      - name: Test on macOS/Linux
-        if: matrix.os != 'windows-latest'
+      - name: Test
         run: bolt coverage:slow
         env:
           DEBUG: electron-installer-snap:snapcraft
       - name: Upload code coverage to Codecov
-        uses: codecov/codecov-action@v1.5.0
+        uses: codecov/codecov-action@v2.0.1
         with:
           file: ./coverage.lcov
           env_vars: CI_OS,TEST_TYPE
         env:
           CI_OS: ${{ matrix.os }}
           TEST_TYPE: slow
+
+  automerge:
+    needs: [fast-tests, slow-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: fastify/github-action-merge-dependabot@v2.2.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   # docs:
   #   if: github.event_name == 'push' && github.ref == 'refs/heads/master'
@@ -149,18 +133,10 @@ jobs:
   #   steps:
   #     - uses: actions/checkout@v1
   #     - name: Use Node.js 12.x
-  #       uses: actions/setup-node@v2.1.5
+  #       uses: actions/setup-node@v2.3.0
   #       with:
   #         node-version: 12.x
-  #     - name: Cache node_modules
-  #       uses: actions/cache@v2.1.5
-  #       with:
-  #         path: node_modules
-  #         key: ${{ runner.OS }}-build-${{ hashFiles('**/yarn.lock') }}
-  #         restore-keys: |
-  #           ${{ runner.OS }}-build-${{ env.cache-name }}-
-  #           ${{ runner.OS }}-build-
-  #           ${{ runner.OS }}-
+  #         cache: yarn
   #     - name: Install bolt
   #       shell: bash
   #       run: |

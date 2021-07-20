@@ -1,3 +1,51 @@
+#### [6.0.0-beta.58](https://github.com/electron-userland/electron-forge/releases/tag/v6.0.0-beta.58) (2021-07-18)
+
+##### New Features
+
+* **plugin-webpack:**
+  *  improve native asset relocation without forking Vercel loader (#2320) ([db8a3f39](https://github.com/electron-userland/electron-forge/commit/db8a3f39))
+  *  add devContentSecurityPolicy config option (#2332) ([7d461090](https://github.com/electron-userland/electron-forge/commit/7d461090))
+  *  add nodeIntegration config for renderers (#2330) ([6e0a6248](https://github.com/electron-userland/electron-forge/commit/6e0a6248))
+* **core:**  add `platform` and `arch` to `generateAssets` hook parameters (#2327) ([e3af089d](https://github.com/electron-userland/electron-forge/commit/e3af089d))
+
+##### Bug Fixes
+
+* **core:**  search for electron in a `node_modules` folder with electron in it (#2326) ([43cbb0a6](https://github.com/electron-userland/electron-forge/commit/43cbb0a6))
+* **plugin-electronegativity:**  add parserPlugins option (#2323) ([c7eff261](https://github.com/electron-userland/electron-forge/commit/c7eff261))
+* **plugin-webpack:**  throw error if something bad happened in preload compilation (#2334) ([755a4502](https://github.com/electron-userland/electron-forge/commit/755a4502))
+* **maker-squirrel:**  use executableName for exe when available (#2365) ([52f71443](https://github.com/electron-userland/electron-forge/commit/52f71443))
+
+#### [6.0.0-beta.57](https://github.com/electron-userland/electron-forge/releases/tag/v6.0.0-beta.57) (2021-05-23)
+
+##### Chores
+
+*  set up typeRoots for package tsconfig (#2286) ([d378b201](https://github.com/electron-userland/electron-forge/commit/d378b201))
+
+##### Bug Fixes
+
+* **webpack-plugin:**  add web as a target for the renderer process (#2285) ([9f2bc411](https://github.com/electron-userland/electron-forge/commit/9f2bc411))
+
+#### [6.0.0-beta.56](https://github.com/electron-userland/electron-forge/releases/tag/v6.0.0-beta.56) (2021-05-22)
+
+##### Build System / Dependencies
+
+* **deps-dev:**
+  *  bump ts-loader (#2282) ([8293fe75](https://github.com/electron-userland/electron-forge/commit/8293fe75))
+  *  bump node-loader (#2219) ([0c980dae](https://github.com/electron-userland/electron-forge/commit/0c980dae))
+  *  bump node-loader in /packages/template/webpack/tmpl (#2218) ([0ff2a518](https://github.com/electron-userland/electron-forge/commit/0ff2a518))
+
+##### Chores
+
+*  require Node 12 for all packages (#2281) ([8fbbad24](https://github.com/electron-userland/electron-forge/commit/8fbbad24))
+
+##### Bug Fixes
+
+* **plugin-local-electron:**  bind methods correctly (#2280) ([e60445d7](https://github.com/electron-userland/electron-forge/commit/e60445d7))
+
+##### Other Changes
+
+* **webpack-plugin:**  upgrade to Webpack 5 (#2225) ([564a4451](https://github.com/electron-userland/electron-forge/commit/564a4451))
+
 #### [6.0.0-beta.55](https://github.com/electron-userland/electron-forge/releases/tag/v6.0.0-beta.55) (2021-05-18)
 
 ##### Build System / Dependencies

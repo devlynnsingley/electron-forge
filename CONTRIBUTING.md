@@ -14,7 +14,7 @@ We strongly suggest that before filing an issue, you search through the existing
 if it has already been filed by someone else.
 
 This project is a part of the Electron ecosystem. As such, all contributions to this project follow
-[Electron's code of conduct](https://github.com/electron/electron/blob/master/CODE_OF_CONDUCT.md)
+[Electron's code of conduct](https://github.com/electron/electron/blob/main/CODE_OF_CONDUCT.md)
 where appropriate.
 
 ## Questions about usage
@@ -49,7 +49,7 @@ When changing the API documentation, here are some rules to keep in mind.
   * should not be "This"
 
 For changes to the website ([electronforge.io](https://www.electronforge.io)), please file
-issues/pull requests at [its separate repository](https://github.com/MarshallOfSound/electron-forge-docs).
+issues/pull requests at [its separate repository](https://github.com/electron-forge/electron-forge-docs).
 
 ## Changing the Code
 
@@ -104,5 +104,5 @@ Here are some things to keep in mind as you file pull requests to fix bugs, add 
 
 - if you aren't sure if a release should happen, open an issue
 - make sure the tests pass
-- `node tools/bump.js $NEW_VERSION`
+- `./tools/bump.ts $NEW_VERSION`
 - `node tools/publish.js`

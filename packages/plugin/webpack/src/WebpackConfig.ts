@@ -4,6 +4,7 @@ import path from 'path';
 import webpack, { Configuration, WebpackPluginInstance } from 'webpack';
 import { merge as webpackMerge } from 'webpack-merge';
 import { WebpackPluginConfig, WebpackPluginEntryPoint, WebpackPreloadEntryPoint } from './Config';
+import AssetRelocatorPatch from './util/AssetRelocatorPatch';
 
 type EntryType = string | string[] | Record<string, string | string[]>;
 
@@ -48,6 +49,14 @@ export default class WebpackConfigGenerator {
     return this.isProd ? 'production' : 'development';
   }
 
+  get rendererSourceMapOption() {
+    return this.isProd ? 'source-map' : 'eval-source-map';
+  }
+
+  get rendererTarget() {
+    return this.pluginConfig.renderer.nodeIntegration ? 'electron-renderer' : 'web';
+  }
+
   rendererEntryPoint(
     entryPoint: WebpackPluginEntryPoint,
     inRendererDir: boolean,
@@ -80,24 +89,8 @@ export default class WebpackConfigGenerator {
     return 'undefined';
   }
 
-  assetRelocatorBaseDir(inRendererDir = true) {
-    if (this.isProd) {
-      return `process.resourcesPath + "/" + (__filename.includes(".asar") ? "app.asar" : "app") + "/.webpack/${inRendererDir ? 'main' : 'renderer/any_folder'}"`;
-    }
-
-    return JSON.stringify(
-      path.resolve(
-        this.webpackDir,
-        inRendererDir ? 'main' : 'renderer',
-        inRendererDir ? '.' : 'any_folder',
-      ),
-    );
-  }
-
   getDefines(inRendererDir = true) {
-    const defines: { [key: string]: string; } = {
-      ASSET_RELOCATOR_BASE_DIR: this.assetRelocatorBaseDir(inRendererDir),
-    };
+    const defines: Record<string, string> = {};
     if (
       !this.pluginConfig.renderer.entryPoints
       || !Array.isArray(this.pluginConfig.renderer.entryPoints)
@@ -118,10 +111,6 @@ export default class WebpackConfigGenerator {
       defines[`process.env.${preloadDefineKey}`] = defines[preloadDefineKey];
     }
     return defines;
-  }
-
-  sourceMapOption() {
-    return this.isProd ? 'source-map' : 'eval-source-map';
   }
 
   getMainConfig() {
@@ -177,7 +166,7 @@ export default class WebpackConfigGenerator {
     const prefixedEntries = entryPoint.prefixedEntries || [];
 
     return webpackMerge({
-      devtool: this.sourceMapOption(),
+      devtool: this.rendererSourceMapOption,
       mode: this.mode,
       entry: prefixedEntries.concat([
         entryPoint.js,
@@ -211,11 +200,13 @@ export default class WebpackConfigGenerator {
         template: entryPoint.html,
         filename: `${entryPoint.name}/index.html`,
         chunks: [entryPoint.name].concat(entryPoint.additionalChunks || []),
-      }) as WebpackPluginInstance).concat([new webpack.DefinePlugin(defines)]);
+      }) as WebpackPluginInstance).concat(
+        [new webpack.DefinePlugin(defines), new AssetRelocatorPatch(this.isProd)],
+      );
     return webpackMerge({
       entry,
-      devtool: this.sourceMapOption(),
-      target: 'electron-renderer',
+      devtool: this.rendererSourceMapOption,
+      target: this.rendererTarget,
       mode: this.mode,
       output: {
         path: path.resolve(this.webpackDir, 'renderer'),
